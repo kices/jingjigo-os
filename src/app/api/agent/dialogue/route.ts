@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
       // If sessions_send fails, try direct model call
       const fallbackResponse = `[${agentConfig.name}] 收到消息：${message}`;
       
-      session.messages.push({
+      (session.messages as any[]).push({
         role: 'assistant',
         from: toAgent,
         content: fallbackResponse,
