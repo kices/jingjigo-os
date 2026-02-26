@@ -26,7 +26,7 @@ function LoginForm() {
       const data = await res.json();
 
       if (data.success) {
-        const from = searchParams.get("from") || "/";
+        const from = searchParams.get("from") || "/dashboard";
         // 直接跳转，不等待
         window.location.href = from;
         return;
