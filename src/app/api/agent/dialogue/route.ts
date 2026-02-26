@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       });
 
       // Add agent response to session
-      session.messages.push({
+      (session.messages as any[]).push({
         role: 'assistant',
         from: toAgent,
         content: stdout || '消息已发送',
