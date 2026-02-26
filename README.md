@@ -16,10 +16,10 @@
 curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/jingjigo-os/main/install.sh | bash
 
 # 自定义端口安装
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/jingjigo-os/main/install.sh | bash -s -- -p 3000
+curl -fsSL https://raw.githubusercontent.com/kices/jingjigo-os/main/install.sh | bash -s -- -p 3000
 
 # 下载后安装
-wget https://raw.githubusercontent.com/YOUR_USERNAME/jingjigo-os/main/install.sh
+wget https://raw.githubusercontent.com/kices/jingjigo-os/main/install.sh
 chmod +x install.sh
 ./install.sh
 ```
