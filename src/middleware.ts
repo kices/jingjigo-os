@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // Routes that never require authentication
-const PUBLIC_ROUTES = new Set(["/login", "/skills", "/"]);
+const PUBLIC_ROUTES = new Set(["/login", "/skills", "/api/health"]);
 
 // API routes that are always public (auth endpoints + health check + skills + activities + agents)
 const PUBLIC_API_PREFIXES = ["/api/auth/", "/api/health", "/api/skills", "/api/activities", "/api/cron", "/api/agents"];
