@@ -1,7 +1,13 @@
 {
-  "name": "mission-control",
-  "version": "0.1.0",
-  "private": true,
+  "name": "jingjigo-os",
+  "version": "1.0.0",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/257394/jingjigo-os.git"
+  },
+  "author": "YuHongLiang",
+  "license": "MIT",
   "scripts": {
     "dev": "next dev -H 0.0.0.0",
     "build": "next build",
