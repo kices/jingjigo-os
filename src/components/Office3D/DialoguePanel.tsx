@@ -65,7 +65,7 @@ export default function DialoguePanel() {
           if (data.messages && data.messages.length > messages.length) {
             setMessages(data.messages.slice(-10));
             // Extract active agents from messages
-            const active = Array.from(new Set(data.messages.slice(-3).map(m => m.from)));
+            const active = Array.from(new Set(data.messages.slice(-3).map((m: any) => m.from)));
             setActiveAgents(active);
           }
         })
