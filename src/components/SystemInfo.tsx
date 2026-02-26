@@ -60,7 +60,7 @@ export function SystemInfo({ data }: SystemInfoProps) {
     },
     {
       icon: Clock,
-      label: "Uptime",
+      label: "运行时间",
       value: data.system.uptimeFormatted,
       sublabel: `${data.system.hostname}`,
     },
@@ -84,7 +84,7 @@ export function SystemInfo({ data }: SystemInfoProps) {
     },
     {
       icon: HardDrive,
-      label: "Memory",
+      label: "记忆",
       value: `${formatBytes(data.system.memory.used)} / ${formatBytes(data.system.memory.total)}`,
       sublabel: `${formatBytes(data.system.memory.free)} free`,
     },

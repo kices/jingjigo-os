@@ -21,56 +21,63 @@ export interface AgentConfig {
   position: [number, number, number]; // x, y, z
   color: string;
   role: string;
+  model?: string; // Optional model name
 }
 
 export const AGENTS: AgentConfig[] = [
   {
     id: "main",
-    name: process.env.NEXT_PUBLIC_AGENT_NAME || "Mission Control",
-    emoji: process.env.NEXT_PUBLIC_AGENT_EMOJI || "🦞",
+    name: "主控鹅",
+    emoji: "🪿",
     position: [0, 0, 0], // Center — main desk
     color: "#FFCC00",
-    role: "Main Agent",
+    role: "主控 Agent",
+    model: "qwen3.5-plus",
   },
   {
-    id: "agent-2",
-    name: "Agent 2",
-    emoji: "🤖",
+    id: "code-helper",
+    name: "代码鹅",
+    emoji: "💻",
     position: [-4, 0, -3],
     color: "#4CAF50",
-    role: "Sub-agent",
+    role: "代码助手",
+    model: "kimi-k2.5",
   },
   {
-    id: "agent-3",
-    name: "Agent 3",
-    emoji: "🤖",
+    id: "project-assistant",
+    name: "项目鹅",
+    emoji: "📊",
     position: [4, 0, -3],
     color: "#E91E63",
-    role: "Sub-agent",
+    role: "项目管理",
+    model: "glm-4.7",
   },
   {
-    id: "agent-4",
-    name: "Agent 4",
-    emoji: "🤖",
+    id: "meeting-secretary",
+    name: "行政鹅",
+    emoji: "📝",
     position: [-4, 0, 3],
     color: "#0077B5",
-    role: "Sub-agent",
+    role: "行政秘书",
+    model: "kimi-k2.5",
   },
   {
-    id: "agent-5",
-    name: "Agent 5",
-    emoji: "🤖",
+    id: "tech-writer",
+    name: "文案鹅",
+    emoji: "✍️",
     position: [4, 0, 3],
     color: "#9C27B0",
-    role: "Sub-agent",
+    role: "技术写作",
+    model: "qwen3.5-plus",
   },
   {
-    id: "agent-6",
-    name: "Agent 6",
-    emoji: "🤖",
+    id: "researcher",
+    name: "研究鹅",
+    emoji: "🔬",
     position: [0, 0, 6],
     color: "#607D8B",
-    role: "Sub-agent",
+    role: "研究员",
+    model: "qwen3-max",
   },
 ];
 

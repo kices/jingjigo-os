@@ -94,7 +94,7 @@ export default function SkillsPage() {
             marginBottom: "4px",
           }}
         >
-          Skills Manager
+          技能管理器
         </h1>
         <p
           style={{

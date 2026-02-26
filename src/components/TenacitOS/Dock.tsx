@@ -18,18 +18,18 @@ import {
 } from "lucide-react";
 
 const dockItems = [
-  { href: "/", label: "Dashboard", icon: Home },
-  { href: "/system", label: "System Monitor", icon: Monitor },
-  { href: "/files", label: "Files", icon: FolderOpen },
-  { href: "/memory", label: "Memory", icon: Brain },
-  { href: "/agents", label: "Agents", icon: Bot },
-  { href: "/office", label: "Office", icon: Building2 },
-  { href: "/activity", label: "Activity", icon: Activity },
-  { href: "/cron", label: "Cron Jobs", icon: Clock },
-  { href: "/sessions", label: "Sessions", icon: History },
-  { href: "/skills", label: "Skills", icon: Puzzle },
-  { href: "/costs", label: "Costs & Analytics", icon: DollarSign },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/", label: "仪表板", icon: Home },
+  { href: "/system", label: "系统监控", icon: Monitor },
+  { href: "/files", label: "文件", icon: FolderOpen },
+  { href: "/memory", label: "记忆", icon: Brain },
+  { href: "/agents", label: "Agent", icon: Bot },
+  { href: "/office", label: "办公室", icon: Building2 },
+  { href: "/activity", label: "活动", icon: Activity },
+  { href: "/cron", label: "定时任务", icon: Clock },
+  { href: "/sessions", label: "会话", icon: History },
+  { href: "/skills", label: "技能", icon: Puzzle },
+  { href: "/costs", label: "成本分析", icon: DollarSign },
+  { href: "/settings", label: "设置", icon: Settings },
 ];
 
 export function Dock() {

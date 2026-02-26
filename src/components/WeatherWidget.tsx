@@ -112,7 +112,7 @@ export function WeatherWidget() {
       {/* 3-day forecast */}
       <div style={{ display: "flex", gap: "0.5rem" }}>
         {weather.forecast.map((day, i) => {
-          const dayName = i === 0 ? "Today" : i === 1 ? "Tmrw" : format(new Date(day.day), "EEE");
+          const dayName = i === 0 ? "今日" : i === 1 ? "Tmrw" : format(new Date(day.day), "EEE");
           return (
             <div
               key={day.day}

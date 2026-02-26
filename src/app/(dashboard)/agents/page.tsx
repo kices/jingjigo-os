@@ -60,17 +60,17 @@ export default function AgentsPage() {
   };
 
   const formatLastActivity = (timestamp?: string) => {
-    if (!timestamp) return "Never";
+    if (!timestamp) return "从未";
     const date = new Date(timestamp);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / 60000);
-    if (minutes < 1) return "Just now";
-    if (minutes < 60) return `${minutes}m ago`;
+    if (minutes < 1) return "刚刚";
+    if (minutes < 60) return `${minutes}分钟前`;
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
+    if (hours < 24) return `${hours}小时前`;
     const days = Math.floor(hours / 24);
-    return `${days}d ago`;
+    return `${days}天前`;
   };
 
   if (loading) {
@@ -78,7 +78,7 @@ export default function AgentsPage() {
       <div className="p-8">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="animate-pulse text-lg" style={{ color: "var(--text-muted)" }}>
-            Loading agents...
+            正在加载 Agent...
           </div>
         </div>
       </div>

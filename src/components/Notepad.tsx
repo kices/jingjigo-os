@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { StickyNote, Save, Trash2 } from "lucide-react";
 
-const STORAGE_KEY = "tenacitas-notepad";
+const STORAGE_KEY = "竞技鹅-notepad";
 
 export function Notepad() {
   const [text, setText] = useState("");
@@ -77,7 +77,7 @@ export function Notepad() {
         )}
         <button
           onClick={clear}
-          title="Clear"
+          title="清空"
           style={{ padding: "0.2rem", borderRadius: "0.25rem", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
         >
           <Trash2 className="w-3 h-3" />
@@ -88,7 +88,7 @@ export function Notepad() {
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="Quick notes, reminders, ideas..."
+        placeholder="快速记录笔记、提醒、想法..."
         style={{
           flex: 1,
           resize: "none",

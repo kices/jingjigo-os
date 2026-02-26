@@ -2,7 +2,8 @@
 
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Box, Text } from '@react-three/drei';
+import { Box } from '@react-three/drei';
+// Text removed to avoid font loading from CDN
 import type { Group } from 'three';
 import type { AgentConfig } from './agentsConfig';
 
@@ -89,16 +90,7 @@ export default function VoxelAvatar({
           </Box>
         )}
 
-        {/* Emoji badge on forehead */}
-        <Text
-          position={[0, 0.08, 0.11]}
-          fontSize={0.08}
-          color="white"
-          anchorX="center"
-          anchorY="middle"
-        >
-          {agent.emoji}
-        </Text>
+        {/* Emoji badge on forehead - Removed to avoid font loading */}
 
         {/* Thinking particles effect */}
         {isThinking && (

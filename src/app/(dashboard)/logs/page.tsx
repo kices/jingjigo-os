@@ -10,7 +10,7 @@ interface LogLine {
 }
 
 const SERVICES = [
-  { name: "mission-control", backend: "systemd", label: "Mission Control" },
+  { name: "mission-control", backend: "systemd", label: "任务控制中心" },
   { name: "classvault", backend: "pm2", label: "ClassVault" },
   { name: "content-vault", backend: "pm2", label: "Content Vault" },
   { name: "brain", backend: "pm2", label: "Brain" },
@@ -183,7 +183,7 @@ export default function LogsPage() {
           </button>
 
           {/* Clear */}
-          <button onClick={handleClear} title="Clear"
+          <button onClick={handleClear} title="清空"
             style={{ padding: "0.375rem 0.625rem", borderRadius: "0.5rem", background: "var(--card-elevated)", border: "1px solid var(--border)", cursor: "pointer", color: "var(--text-muted)" }}>
             <Trash2 className="w-3.5 h-3.5" />
           </button>

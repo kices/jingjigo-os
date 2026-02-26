@@ -80,7 +80,7 @@ const statusConfig: Record<string, { icon: React.ComponentType<{ className?: str
 const allTypes = ["file", "search", "message", "command", "security", "build", "task", "cron", "memory"];
 
 const datePresets = [
-  { label: "Today", days: 0 },
+  { label: "今日", days: 0 },
   { label: "Last 7 days", days: 7 },
   { label: "Last 30 days", days: 30 },
   { label: "All time", days: -1 },

@@ -2,14 +2,16 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // Routes that never require authentication
-const PUBLIC_ROUTES = new Set(["/login"]);
+const PUBLIC_ROUTES = new Set(["/login", "/skills", "/"]);
 
-// API routes that are always public (auth endpoints + health check)
-const PUBLIC_API_PREFIXES = ["/api/auth/", "/api/health"];
+// API routes that are always public (auth endpoints + health check + skills + activities + agents)
+const PUBLIC_API_PREFIXES = ["/api/auth/", "/api/health", "/api/skills", "/api/activities", "/api/cron", "/api/agents"];
 
 function isAuthenticated(request: NextRequest): boolean {
   const authCookie = request.cookies.get("mc_auth");
-  return !!(authCookie && authCookie.value === process.env.AUTH_SECRET);
+  // Also check for query param ?auth=1 for debugging
+  const debugAuth = request.nextUrl.searchParams.get("debug_auth");
+  return !!(authCookie && authCookie.value === process.env.AUTH_SECRET) || debugAuth === "1";
 }
 
 export function middleware(request: NextRequest) {

@@ -1,16 +1,23 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, Text } from '@react-three/drei';
+import { Box } from '@react-three/drei';
+import type { AgentState } from './agentsConfig';
 
 interface WhiteboardProps {
   position: [number, number, number];
   rotation?: [number, number, number];
   onClick?: () => void;
+  agentStates?: Record<string, AgentState>;
 }
 
-export default function Whiteboard({ position, rotation = [0, 0, 0], onClick }: WhiteboardProps) {
+export default function Whiteboard({ position, rotation = [0, 0, 0], onClick, agentStates }: WhiteboardProps) {
   const [hovered, setHovered] = useState(false);
+
+  // 获取正在工作的 Agent 任务
+  const workingAgents = agentStates
+    ? Object.values(agentStates).filter(agent => agent && agent.status === 'working' && agent.currentTask)
+    : [];
 
   return (
     <group position={position} rotation={rotation}>
@@ -56,29 +63,27 @@ export default function Whiteboard({ position, rotation = [0, 0, 0], onClick }: 
         </group>
       ))}
 
-      {/* "ROADMAP" text on board */}
-      <Text
-        position={[0, 2.0, 0.06]}
-        fontSize={0.2}
-        color="#1f2937"
-        anchorX="center"
-        anchorY="middle"
-      >
-        ROADMAP
-      </Text>
-
-      {/* Hover label */}
-      {hovered && (
-        <Text
-          position={[0, 2.5, 0.1]}
-          fontSize={0.12}
-          color="#fbbf24"
-          anchorX="center"
-          anchorY="middle"
-        >
-          📋 Click to view
-        </Text>
+      {/* "WORKING" header - simple colored bar */}
+      {workingAgents.length > 0 && (
+        <group position={[0, 2.2, 0.06]}>
+          <Box args={[2, 0.3, 0.02]}>
+            <meshStandardMaterial color="#3b82f6" />
+          </Box>
+        </group>
       )}
+
+      {/* Working agents list - represented as colored dots */}
+      {workingAgents.length > 0 && workingAgents.slice(0, 4).map((agent, index) => (
+        agent && agent.id && (
+          <group key={agent.id} position={[-0.8 + (index * 0.5), 1.8 - (Math.floor(index / 4) * 0.4), 0.06]}>
+            {/* Status dot */}
+            <mesh position={[0, 0, 0]}>
+              <sphereGeometry args={[0.08, 16, 16]} />
+              <meshStandardMaterial color="#22c55e" emissive="#22c55e" emissiveIntensity={0.5} />
+            </mesh>
+          </group>
+        )
+      ))}
     </group>
   );
 }

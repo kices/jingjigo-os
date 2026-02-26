@@ -123,7 +123,7 @@ export function StatusBar() {
       {/* RAM */}
       <StatusMetric
         icon={MemoryStick}
-        label="RAM"
+        label="内存"
         value={`${stats.ram.used.toFixed(1)}/${stats.ram.total}GB`}
         barPercent={ramPercent}
         color={ramColor}
@@ -132,7 +132,7 @@ export function StatusBar() {
       {/* Disk */}
       <StatusMetric
         icon={HardDrive}
-        label="DISK"
+        label="磁盘"
         value={`${diskPercent.toFixed(0)}%`}
         barPercent={diskPercent}
         color={diskColor}

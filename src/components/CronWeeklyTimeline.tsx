@@ -31,7 +31,7 @@ const JOB_COLORS = [
   "#CE93D8", // lavender
   "#F48FB1", // pink
   "#80DEEA", // teal
-  "#FFCC02", // yellow (TenacitOS accent)
+  "#FFCC02", // yellow (竞技鹅 OS accent)
   "#A5D6A7", // mint
   "#FF8A65", // deep orange
 ];
@@ -157,7 +157,7 @@ export function CronWeeklyTimeline({ jobs }: CronWeeklyTimelineProps) {
 
       columns.push({
         date,
-        label: isToday ? "Today" : format(date, "EEE d"),
+        label: isToday ? "今日" : format(date, "EEE d"),
         subLabel: isToday ? format(date, "EEE d") : format(date, "MMM"),
         isToday,
         events: dayEvents,

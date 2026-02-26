@@ -7,8 +7,8 @@
 
 export const BRANDING = {
   // Main agent name and emoji
-  agentName: process.env.NEXT_PUBLIC_AGENT_NAME || "Mission Control",
-  agentEmoji: process.env.NEXT_PUBLIC_AGENT_EMOJI || "🦞",
+  agentName: process.env.NEXT_PUBLIC_AGENT_NAME || "任务控制中心",
+  agentEmoji: process.env.NEXT_PUBLIC_AGENT_EMOJI || "🪿",
 
   // About page — agent identity
   agentLocation: process.env.NEXT_PUBLIC_AGENT_LOCATION || "",
@@ -28,7 +28,7 @@ export const BRANDING = {
   companyName: process.env.NEXT_PUBLIC_COMPANY_NAME || "MISSION CONTROL, INC.",
 
   // App title (shown in browser tab)
-  appTitle: process.env.NEXT_PUBLIC_APP_TITLE || "Mission Control",
+  appTitle: process.env.NEXT_PUBLIC_APP_TITLE || "任务控制中心",
 } as const;
 
 // Helper to get full agent display name

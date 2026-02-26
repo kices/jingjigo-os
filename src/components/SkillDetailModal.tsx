@@ -97,7 +97,7 @@ export function SkillDetailModal({ skill, onClose }: SkillDetailModalProps) {
                     color: skill.source === "workspace" ? "#C4B5FD" : "#93C5FD"
                   }}
                 >
-                  {skill.source === "workspace" ? "Workspace" : "System"}
+                  {skill.source === "workspace" ? "Workspace" : "系统"}
                 </span>
                 {skill.homepage && (
                   <a

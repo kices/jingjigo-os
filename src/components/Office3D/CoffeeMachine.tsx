@@ -2,7 +2,8 @@
 
 import { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Box, Cylinder, Text } from '@react-three/drei';
+import { Box, Cylinder } from '@react-three/drei';
+// Text removed to avoid font loading from CDN
 import type { Mesh } from 'three';
 
 interface CoffeeMachineProps {
@@ -120,18 +121,7 @@ export default function CoffeeMachine({ position, onClick }: CoffeeMachineProps)
         />
       </Cylinder>
 
-      {/* Hover label */}
-      {hovered && (
-        <Text
-          position={[0, 1.0, 0]}
-          fontSize={0.12}
-          color="#fbbf24"
-          anchorX="center"
-          anchorY="middle"
-        >
-          ☕ Agent Energy
-        </Text>
-      )}
+      {/* Hover label - Removed to avoid font loading */}
     </group>
   );
 }

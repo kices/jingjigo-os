@@ -20,8 +20,17 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { workspace, path: filePath, content } = body;
 
-    if (!filePath || content === undefined) {
-      return NextResponse.json({ error: 'Missing path or content' }, { status: 400 });
+    // Security: Input validation
+    if (!filePath || typeof filePath !== 'string') {
+      return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
+    }
+    if (content === undefined || typeof content !== 'string') {
+      return NextResponse.json({ error: 'Invalid content' }, { status: 400 });
+    }
+
+    // Security: Prevent path traversal
+    if (filePath.includes('..') || filePath.startsWith('/')) {
+      return NextResponse.json({ error: 'Invalid path format' }, { status: 400 });
     }
 
     const base = WORKSPACE_MAP[workspace || 'workspace'];

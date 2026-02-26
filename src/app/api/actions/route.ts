@@ -105,10 +105,10 @@ async function runAction(action: string): Promise<ActionResult> {
 
         // Ping the main site
         try {
-          const { stdout: ping } = await execAsync('curl -s -o /dev/null -w "%{http_code}" --max-time 5 https://tenacitas.cazaustre.dev');
-          results.push(`\n🌐 tenacitas.cazaustre.dev: HTTP ${ping.trim()}`);
+          const { stdout: ping } = await execAsync('curl -s -o /dev/null -w "%{http_code}" --max-time 5 https://竞技鹅.cazaustre.dev');
+          results.push(`\n🌐 竞技鹅.cazaustre.dev: HTTP ${ping.trim()}`);
         } catch {
-          results.push('\n🌐 tenacitas.cazaustre.dev: unreachable');
+          results.push('\n🌐 竞技鹅.cazaustre.dev: unreachable');
         }
 
         output = results.join('\n');

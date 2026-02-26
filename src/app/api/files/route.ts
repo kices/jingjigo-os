@@ -3,6 +3,7 @@ import { promises as fs } from "fs";
 import path from "path";
 
 const OPENCLAW_DIR = process.env.OPENCLAW_DIR || "/root/.openclaw";
+const OPENCLAW_WORKSPACE = process.env.OPENCLAW_WORKSPACE || "/root/.openclaw/workspace";
 
 // Files to show in the memory browser
 const ROOT_FILES = ["MEMORY.md", "SOUL.md", "USER.md", "AGENTS.md", "TOOLS.md", "IDENTITY.md"];
@@ -100,13 +101,18 @@ export async function GET(request: NextRequest) {
   const filePath = searchParams.get("path");
 
   try {
-    // Determine workspace path
-    const workspacePath = path.join(OPENCLAW_DIR, workspace);
+    // Determine workspace path - check both OPENCLAW_DIR and parent directory
+    let workspacePath = path.join(OPENCLAW_DIR, workspace);
+    
+    // If not found in OPENCLAW_DIR, try sibling directory
+    if (!(await fileExists(workspacePath))) {
+      workspacePath = path.join(path.dirname(OPENCLAW_DIR), workspace);
+    }
     
     // Validate workspace exists
     if (!(await fileExists(workspacePath))) {
       return NextResponse.json(
-        { error: "Workspace not found" },
+        { error: `Workspace not found: ${workspace}` },
         { status: 404 }
       );
     }

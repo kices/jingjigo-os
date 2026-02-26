@@ -53,85 +53,105 @@ export default function AgentPanel({ agent, state, onClose }: AgentPanelProps) {
       <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6 ${getStatusBgColor()}`}>
         <div className={`w-2 h-2 rounded-full ${state.status === 'thinking' ? 'animate-pulse' : ''}`} style={{ backgroundColor: agent.color }}></div>
         <span className={`text-sm font-medium ${getStatusColor()}`}>
-          {state.status.toUpperCase()}
+          {state.status === 'working' && '工作中'}
+          {state.status === 'thinking' && '思考中'}
+          {state.status === 'error' && '错误'}
+          {state.status === 'idle' && '空闲'}
         </span>
       </div>
 
       {/* Current task */}
       {state.currentTask && (
         <div className="mb-6">
-          <h3 className="text-sm font-semibold text-gray-400 mb-2">Current Task</h3>
+          <h3 className="text-sm font-semibold text-gray-400 mb-2">当前任务</h3>
           <p className="text-base">{state.currentTask}</p>
         </div>
       )}
 
       {/* Stats */}
       <div className="space-y-4 mb-6">
-        <h3 className="text-sm font-semibold text-gray-400">Stats</h3>
+        <h3 className="text-sm font-semibold text-gray-400">统计数据</h3>
         
         <div className="grid grid-cols-2 gap-4">
           {/* Model */}
           <div className="bg-white/5 p-3 rounded-lg">
-            <p className="text-xs text-gray-400 mb-1">Model</p>
+            <p className="text-xs text-gray-400 mb-1">模型</p>
             <p className="text-lg font-bold capitalize">{state.model || 'N/A'}</p>
           </div>
 
           {/* Tokens/hour */}
           <div className="bg-white/5 p-3 rounded-lg">
-            <p className="text-xs text-gray-400 mb-1">Tokens/hour</p>
+            <p className="text-xs text-gray-400 mb-1">Tokens/小时</p>
             <p className="text-lg font-bold">{state.tokensPerHour?.toLocaleString() || '0'}</p>
           </div>
 
           {/* Tasks in queue */}
           <div className="bg-white/5 p-3 rounded-lg">
-            <p className="text-xs text-gray-400 mb-1">Queue</p>
-            <p className="text-lg font-bold">{state.tasksInQueue || 0} tasks</p>
+            <p className="text-xs text-gray-400 mb-1">队列</p>
+            <p className="text-lg font-bold">{state.tasksInQueue || 0} 个任务</p>
           </div>
 
           {/* Uptime */}
           <div className="bg-white/5 p-3 rounded-lg">
-            <p className="text-xs text-gray-400 mb-1">Uptime</p>
-            <p className="text-lg font-bold">{state.uptime || 0} days</p>
+            <p className="text-xs text-gray-400 mb-1">运行时间</p>
+            <p className="text-lg font-bold">{state.uptime || 0} 天</p>
           </div>
         </div>
       </div>
 
       {/* Activity Feed (placeholder) */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-400 mb-3">Recent Activity</h3>
+        <h3 className="text-sm font-semibold text-gray-400 mb-3">最近活动</h3>
         <div className="space-y-2">
           <div className="bg-white/5 p-3 rounded-lg text-sm">
-            <p className="text-gray-400 text-xs mb-1">2 minutes ago</p>
-            <p>Completed task: Generate report</p>
+            <p className="text-gray-400 text-xs mb-1">2 分钟前</p>
+            <p>完成任务：生成报告</p>
           </div>
           <div className="bg-white/5 p-3 rounded-lg text-sm">
-            <p className="text-gray-400 text-xs mb-1">15 minutes ago</p>
-            <p>Started: {state.currentTask || 'Processing data'}</p>
+            <p className="text-gray-400 text-xs mb-1">15 分钟前</p>
+            <p>开始：{state.currentTask || '处理数据'}</p>
           </div>
           <div className="bg-white/5 p-3 rounded-lg text-sm">
-            <p className="text-gray-400 text-xs mb-1">1 hour ago</p>
-            <p>Switched model to {state.model}</p>
+            <p className="text-gray-400 text-xs mb-1">1 小时前</p>
+            <p>切换模型到 {state.model}</p>
           </div>
         </div>
       </div>
 
-      {/* Quick Actions */}
+      {/* Quick Actions - Placeholder (功能开发中) */}
       <div className="mt-6 pt-6 border-t border-white/10">
-        <h3 className="text-sm font-semibold text-gray-400 mb-3">Quick Actions</h3>
+        <h3 className="text-sm font-semibold text-gray-400 mb-3">快捷操作</h3>
         <div className="grid grid-cols-2 gap-2">
-          <button className="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm transition-colors">
-            Send Message
+          <button 
+            className="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm transition-colors cursor-not-allowed opacity-50"
+            title="功能开发中"
+            disabled
+          >
+            发送消息 (开发中)
           </button>
-          <button className="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm transition-colors">
-            View History
+          <button 
+            className="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm transition-colors cursor-not-allowed opacity-50"
+            title="功能开发中"
+            disabled
+          >
+            查看历史 (开发中)
           </button>
-          <button className="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm transition-colors">
-            Change Model
+          <button 
+            className="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm transition-colors cursor-not-allowed opacity-50"
+            title="功能开发中"
+            disabled
+          >
+            切换模型 (开发中)
           </button>
-          <button className="px-3 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-sm transition-colors text-red-400">
-            Kill Task
+          <button 
+            className="px-3 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-sm transition-colors text-red-400 cursor-not-allowed opacity-50"
+            title="功能开发中"
+            disabled
+          >
+            终止任务 (开发中)
           </button>
         </div>
+        <p className="text-xs text-gray-500 mt-2">💡 这些功能将在后续版本中实现</p>
       </div>
     </div>
   );

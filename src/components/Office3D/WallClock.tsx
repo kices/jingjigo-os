@@ -2,7 +2,8 @@
 
 import { useRef, useEffect, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Cylinder, Box, Text } from '@react-three/drei';
+import { Cylinder, Box } from '@react-three/drei';
+// Text removed to avoid font loading from CDN
 import type { Group } from 'three';
 
 interface WallClockProps {
@@ -106,16 +107,7 @@ export default function WallClock({ position, rotation = [0, 0, 0] }: WallClockP
         </Box>
       </group>
 
-      {/* Digital time display at bottom (small text) */}
-      <Text
-        position={[0, -0.18, 0.055]}
-        fontSize={0.06}
-        color="#1f2937"
-        anchorX="center"
-        anchorY="middle"
-      >
-        {time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-      </Text>
+      {/* Digital time display - Removed to avoid font loading */}
     </group>
   );
 }

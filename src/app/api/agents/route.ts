@@ -32,7 +32,7 @@ const DEFAULT_AGENT_CONFIG: Record<string, { emoji: string; color: string; name?
   main: {
     emoji: process.env.NEXT_PUBLIC_AGENT_EMOJI || "🤖",
     color: "#ff6b35",
-    name: process.env.NEXT_PUBLIC_AGENT_NAME || "Mission Control",
+    name: process.env.NEXT_PUBLIC_AGENT_NAME || "任务控制中心",
   },
 };
 
@@ -58,7 +58,7 @@ function getAgentDisplayInfo(agentId: string, agentConfig: any): { emoji: string
 export async function GET() {
   try {
     // Read openclaw config
-    const configPath = (process.env.OPENCLAW_DIR || "/root/.openclaw") + "/openclaw.json";
+    const configPath = join(process.env.OPENCLAW_DIR || "/root/.openclaw", "openclaw.json");
     const config = JSON.parse(readFileSync(configPath, "utf-8"));
 
     // Get agents from config
@@ -71,13 +71,40 @@ export async function GET() {
       const botToken = telegramAccount?.botToken;
 
       // Check if agent has recent activity
-      const memoryPath = join(agent.workspace, "memory");
+      // Try multiple possible workspace paths
+      const possibleWorkspaces = [
+        agent.workspace,
+        join(process.env.OPENCLAW_DIR || "/root/.openclaw", "workspace-" + agent.id),
+        join(process.env.OPENCLAW_DIR || "/root/.openclaw", "workspace"),
+      ].filter(Boolean);
+      
+      let workspacePath = possibleWorkspaces[0];
+      for (const ws of possibleWorkspaces) {
+        try {
+          require('fs').accessSync(ws);
+          workspacePath = ws;
+          break;
+        } catch {
+          continue;
+        }
+      }
+      
+      const memoryPath = join(workspacePath, "memory");
       let lastActivity = undefined;
       let status: "online" | "offline" = "offline";
 
       try {
         const today = new Date().toISOString().split("T")[0];
         const memoryFile = join(memoryPath, `${today}.md`);
+        
+        // Check if memory directory exists (sync version)
+        try {
+          require('fs').accessSync(memoryPath);
+        } catch {
+          // Memory directory doesn't exist, skip
+          status = "offline";
+          lastActivity = undefined;
+        }
         const stat = require("fs").statSync(memoryFile);
         lastActivity = stat.mtime.toISOString();
         // Consider online if activity within last 5 minutes
@@ -122,7 +149,7 @@ export async function GET() {
         color: agentInfo.color,
         model:
           agent.model?.primary || config.agents.defaults.model.primary,
-        workspace: agent.workspace,
+        workspace: workspacePath || "unknown",
         dmPolicy:
           telegramAccount?.dmPolicy ||
           config.channels?.telegram?.dmPolicy ||

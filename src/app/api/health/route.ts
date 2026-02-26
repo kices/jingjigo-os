@@ -61,7 +61,7 @@ export async function GET() {
     checkSystemdService('mission-control'),
     checkSystemdService('openclaw-gateway'),
   ]);
-  checks.push({ ...missionControl, name: 'Mission Control' });
+  checks.push({ ...missionControl, name: '任务控制中心' });
   checks.push({ ...gateway, name: 'OpenClaw Gateway' });
 
   // PM2 services
@@ -71,15 +71,15 @@ export async function GET() {
 
   // External URLs
   const urlChecks = await Promise.all([
-    checkUrl('https://tenacitas.cazaustre.dev'),
+    checkUrl('https://竞技鹅.cazaustre.dev'),
     checkUrl('https://api.anthropic.com', 3000),
   ]);
 
   checks.push({
-    name: 'tenacitas.cazaustre.dev',
+    name: '竞技鹅.cazaustre.dev',
     status: urlChecks[0].status,
     latency: urlChecks[0].latency,
-    url: 'https://tenacitas.cazaustre.dev',
+    url: 'https://竞技鹅.cazaustre.dev',
   });
 
   checks.push({

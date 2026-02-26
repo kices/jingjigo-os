@@ -2,7 +2,9 @@
 
 import { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Text, Box } from '@react-three/drei';
+import { Box } from '@react-three/drei';
+import { Group } from 'three';
+// Text removed to avoid font loading from CDN
 import type { Mesh } from 'three';
 import type { AgentConfig, AgentState } from './agentsConfig';
 import VoxelAvatar from './VoxelAvatar';
@@ -18,6 +20,7 @@ interface AgentDeskProps {
 }
 
 export default function AgentDesk({ agent, state, onClick, isSelected }: AgentDeskProps) {
+  const groupRef = useRef<Group>(null);
   const deskRef = useRef<Mesh>(null);
   const monitorRef = useRef<Mesh>(null);
   const [hovered, setHovered] = useState(false);
@@ -58,7 +61,7 @@ export default function AgentDesk({ agent, state, onClick, isSelected }: AgentDe
   };
 
   return (
-    <group position={agent.position}>
+    <group ref={groupRef} position={agent.position}>
       {/* Desk surface */}
       <Box
         ref={deskRef}
@@ -92,6 +95,32 @@ export default function AgentDesk({ agent, state, onClick, isSelected }: AgentDe
         />
       </Box>
 
+      {/* Nameplate on monitor (color bar with emoji indicator) */}
+      <Box
+        args={[0.8, 0.15, 0.03]}
+        position={[0, 1.15, -0.48]}
+        castShadow
+      >
+        <meshStandardMaterial
+          color={agent.color}
+          emissive={agent.color}
+          emissiveIntensity={0.3}
+        />
+      </Box>
+
+      {/* Status indicator dot on monitor */}
+      <mesh
+        position={[0.35, 1.15, -0.47]}
+        castShadow
+      >
+        <sphereGeometry args={[0.04, 16, 16]} />
+        <meshStandardMaterial
+          color={getStatusColor()}
+          emissive={getStatusColor()}
+          emissiveIntensity={0.8}
+        />
+      </mesh>
+
       {/* Monitor stand */}
       <Box
         args={[0.1, 0.4, 0.1]}
@@ -123,30 +152,8 @@ export default function AgentDesk({ agent, state, onClick, isSelected }: AgentDe
         />
       </group>
 
-      {/* Nameplate */}
-      <Text
-        position={[0, 2.5, 0]}
-        fontSize={0.15}
-        color="white"
-        anchorX="center"
-        anchorY="middle"
-        outlineWidth={0.01}
-        outlineColor="#000000"
-      >
-        {agent.emoji} {agent.name}
-      </Text>
-
-      {/* Status indicator text */}
-      <Text
-        position={[0, 2.2, 0]}
-        fontSize={0.1}
-        color={getStatusColor()}
-        anchorX="center"
-        anchorY="middle"
-      >
-        {state.status.toUpperCase()}
-        {state.model && ` • ${state.model}`}
-      </Text>
+      {/* Nameplate - Removed to avoid font loading */}
+      {/* Status indicator text - Removed to avoid font loading */}
 
       {/* Desk legs */}
       {[-0.8, 0.8].map((x, i) =>

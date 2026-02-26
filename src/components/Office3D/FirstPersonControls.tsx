@@ -91,6 +91,15 @@ export default function FirstPersonControls({ moveSpeed = 5 }: FirstPersonContro
     };
   }, []);
 
+  // Handle pointer lock errors gracefully
+  useEffect(() => {
+    const handlePointerLockError = () => {
+      console.warn('Pointer lock failed or was exited by user');
+    };
+    document.addEventListener('pointerlockerror', handlePointerLockError);
+    return () => document.removeEventListener('pointerlockerror', handlePointerLockError);
+  }, []);
+
   useFrame((state, delta) => {
     if (!controlsRef.current?.isLocked) return;
 

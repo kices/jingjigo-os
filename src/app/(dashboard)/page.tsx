@@ -1,312 +1,165 @@
-"use client";
+/**
+ * Dashboard Page - Real-time Activity Stats
+ */
 
-import { useEffect, useState } from "react";
-import { StatsCard } from "@/components/StatsCard";
-import { ActivityFeed } from "@/components/ActivityFeed";
-import { WeatherWidget } from "@/components/WeatherWidget";
-import { Notepad } from "@/components/Notepad";
-import {
-  Activity,
-  CheckCircle,
-  XCircle,
-  Calendar,
-  Circle,
-  Bot,
-  MessageSquare,
-  Users,
-  Gamepad2,
-  Brain,
-  Puzzle,
-  Zap,
-  Server,
-  Terminal,
-} from "lucide-react";
-import Link from "next/link";
+'use client';
 
-interface Stats {
+import { useEffect, useState } from 'react';
+import { Activity, Clock, CheckCircle, AlertCircle, Users, FileText, Calendar } from 'lucide-react';
+
+interface ActivityStats {
   total: number;
   today: number;
   success: number;
   error: number;
-  byType: Record<string, number>;
 }
 
-interface Agent {
+interface CronJob {
+  id: string;
+  schedule: string;
+  description: string;
+  status: string;
+}
+
+interface Skill {
   id: string;
   name: string;
-  emoji: string;
-  color: string;
-  model: string;
-  status: "online" | "offline";
-  lastActivity?: string;
-  botToken?: string;
+  description: string;
 }
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<Stats>({ total: 0, today: 0, success: 0, error: 0, byType: {} });
-  const [agents, setAgents] = useState<Agent[]>([]);
+  const [stats, setStats] = useState<ActivityStats>({ total: 0, today: 0, success: 0, error: 0 });
+  const [cronJobs, setCronJobs] = useState<CronJob[]>([]);
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/activities/stats").then(r => r.json()),
-      fetch("/api/agents").then(r => r.json()),
-    ]).then(([actStats, agentsData]) => {
-      setStats({
-        total: actStats.total || 0,
-        today: actStats.today || 0,
-        success: actStats.byStatus?.success || 0,
-        error: actStats.byStatus?.error || 0,
-        byType: actStats.byType || {},
-      });
-      setAgents(agentsData.agents || []);
-    }).catch(console.error);
+    async function fetchData() {
+      try {
+        // Fetch activities
+        const activitiesRes = await fetch('/api/activities?limit=100');
+        const activitiesData = await activitiesRes.json();
+        
+        // Calculate stats
+        const activities = activitiesData.activities || [];
+        const now = new Date();
+        const today = now.toISOString().split('T')[0];
+        
+        const todayActivities = activities.filter((a: any) => a.timestamp.startsWith(today));
+        const successActivities = activities.filter((a: any) => a.status === 'success');
+        const errorActivities = activities.filter((a: any) => a.status === 'error');
+        
+        setStats({
+          total: activitiesData.total || activities.length,
+          today: todayActivities.length,
+          success: successActivities.length,
+          error: errorActivities.length,
+        });
+        
+        // Fetch cron jobs
+        const cronRes = await fetch('/api/cron');
+        const cronData = await cronRes.json();
+        setCronJobs(cronData.jobs || []);
+        
+        // Fetch skills
+        const skillsRes = await fetch('/api/skills');
+        const skillsData = await skillsRes.json();
+        setSkills(skillsData.skills || []);
+        
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchData();
+    
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
   }, []);
 
+  const statCards = [
+    { title: '总活动数', value: stats.total, icon: Activity, color: 'from-blue-500 to-cyan-500' },
+    { title: '今日', value: stats.today, icon: Clock, color: 'from-green-500 to-emerald-500' },
+    { title: '成功', value: stats.success, icon: CheckCircle, color: 'from-purple-500 to-pink-500' },
+    { title: '错误', value: stats.error, icon: AlertCircle, color: 'from-red-500 to-orange-500' },
+  ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🪿</div>
+          <h2 className="text-2xl font-bold text-white">加载中...</h2>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-4 md:p-8">
-      {/* Header */}
-      <div className="mb-4 md:mb-6">
-        <h1 
-          className="text-2xl md:text-3xl font-bold mb-1"
-          style={{ 
-            fontFamily: 'var(--font-heading)',
-            color: 'var(--text-primary)',
-            letterSpacing: '-1.5px'
-          }}
-        >
-          🦞 Mission Control
-        </h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-          Overview of Tenacitas agent activity
-        </p>
-      </div>
-
-      {/* Stats Grid + Weather */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4 md:mb-6">
-        {/* Stats */}
-        <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatsCard
-            title="Total Activities"
-            value={stats.total.toLocaleString()}
-            icon={<Activity className="w-5 h-5" />}
-            iconColor="var(--info)"
-          />
-          <StatsCard
-            title="Today"
-            value={stats.today.toLocaleString()}
-            icon={<Zap className="w-5 h-5" />}
-            iconColor="var(--accent)"
-          />
-          <StatsCard
-            title="Successful"
-            value={stats.success.toLocaleString()}
-            icon={<CheckCircle className="w-5 h-5" />}
-            iconColor="var(--success)"
-          />
-          <StatsCard
-            title="Errors"
-            value={stats.error.toLocaleString()}
-            icon={<XCircle className="w-5 h-5" />}
-            iconColor="var(--error)"
-          />
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold text-white mb-4">竞技鹅智能 OS</h1>
+          <p className="text-xl text-gray-400">多 Agent 协作系统活动概览</p>
         </div>
 
-        {/* Weather Widget */}
-        <div className="lg:col-span-1">
-          <WeatherWidget />
-        </div>
-      </div>
-
-      {/* Multi-Agent Status */}
-      <div 
-        className="mb-6 rounded-xl overflow-hidden"
-        style={{
-          backgroundColor: 'var(--card)',
-          border: '1px solid var(--border)',
-        }}
-      >
-        <div 
-          className="flex items-center justify-between px-5 py-4"
-          style={{ borderBottom: '1px solid var(--border)' }}
-        >
-          <div className="flex items-center gap-3">
-            <div className="accent-line" />
-            <h2 
-              className="text-base font-semibold"
-              style={{ 
-                fontFamily: 'var(--font-heading)',
-                color: 'var(--text-primary)'
-              }}
-            >
-              <Users className="inline-block w-5 h-5 mr-2 mb-1" />
-              Multi-Agent System
-            </h2>
-          </div>
-          <div className="flex gap-2">
-            <Link
-              href="/office"
-              className="text-sm font-medium px-3 py-1.5 rounded-lg transition-all"
-              style={{ 
-                backgroundColor: 'var(--accent)',
-                color: 'var(--text-primary)',
-              }}
-            >
-              <Gamepad2 className="inline-block w-4 h-4 mr-1 mb-0.5" />
-              Open Office
-            </Link>
-            <Link
-              href="/agents"
-              className="text-sm font-medium"
-              style={{ color: 'var(--accent)' }}
-            >
-              View all →
-            </Link>
-          </div>
-        </div>
-        <div className="p-5">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            {agents.map((agent) => (
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          {statCards.map((card) => {
+            const Icon = card.icon;
+            return (
               <div
-                key={agent.id}
-                className="p-3 rounded-lg transition-all hover:scale-105"
-                style={{
-                  backgroundColor: 'var(--card-elevated)',
-                  border: `2px solid ${agent.color}`,
-                  cursor: 'pointer',
-                }}
+                key={card.title}
+                className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/30 transition-all"
               >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-2xl">{agent.emoji}</div>
-                  <Circle
-                    className="w-2 h-2"
-                    style={{
-                      fill: agent.status === "online" ? "#4ade80" : "#6b7280",
-                      color: agent.status === "online" ? "#4ade80" : "#6b7280",
-                    }}
-                  />
-                </div>
-                <div 
-                  className="text-sm font-bold mb-1"
-                  style={{ 
-                    fontFamily: 'var(--font-heading)',
-                    color: 'var(--text-primary)',
-                  }}
-                >
-                  {agent.name}
-                </div>
-                <div 
-                  className="text-xs truncate mb-1"
-                  style={{ color: 'var(--text-muted)' }}
-                  title={agent.model}
-                >
-                  <Bot className="inline-block w-3 h-3 mr-1" />
-                  {agent.model.split('/').pop()}
-                </div>
-                {agent.botToken && (
-                  <div 
-                    className="text-xs mt-1 flex items-center gap-1"
-                    style={{ color: '#0088cc' }}
-                  >
-                    <MessageSquare className="w-3 h-3" />
-                    Connected
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${card.color} flex items-center justify-center`}>
+                    <Icon className="w-6 h-6 text-white" />
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-        {/* Activity Feed */}
-        <div 
-          className="lg:col-span-2 rounded-xl overflow-hidden"
-          style={{
-            backgroundColor: 'var(--card)',
-            border: '1px solid var(--border)',
-          }}
-        >
-          <div 
-            className="flex items-center justify-between px-5 py-4"
-            style={{ borderBottom: '1px solid var(--border)' }}
-          >
-            <div className="flex items-center gap-3">
-              <div className="accent-line" />
-              <h2 
-                className="text-base font-semibold"
-                style={{ 
-                  fontFamily: 'var(--font-heading)',
-                  color: 'var(--text-primary)'
-                }}
-              >
-                Recent Activity
-              </h2>
-            </div>
-            <a
-              href="/activity"
-              className="text-sm font-medium"
-              style={{ color: 'var(--accent)' }}
-            >
-              View all →
-            </a>
-          </div>
-          <div className="p-0">
-            <ActivityFeed limit={5} />
-          </div>
-        </div>
-
-        {/* Quick Links */}
-        <div 
-          className="rounded-xl overflow-hidden"
-          style={{
-            backgroundColor: 'var(--card)',
-            border: '1px solid var(--border)',
-          }}
-        >
-          <div 
-            className="flex items-center justify-between px-5 py-4"
-            style={{ borderBottom: '1px solid var(--border)' }}
-          >
-            <div className="flex items-center gap-3">
-              <div className="accent-line" />
-              <h2 
-                className="text-base font-semibold"
-                style={{ 
-                  fontFamily: 'var(--font-heading)',
-                  color: 'var(--text-primary)'
-                }}
-              >
-                Quick Links
-              </h2>
-            </div>
-          </div>
-          <div className="p-4 grid grid-cols-2 gap-2">
-            {[
-              { href: "/cron", icon: Calendar, label: "Cron Jobs", color: "#a78bfa" },
-              { href: "/actions", icon: Zap, label: "Quick Actions", color: "var(--accent)" },
-              { href: "/system", icon: Server, label: "System", color: "var(--success)" },
-              { href: "/logs", icon: Terminal, label: "Live Logs", color: "#60a5fa" },
-              { href: "/memory", icon: Brain, label: "Memory", color: "#f59e0b" },
-              { href: "/skills", icon: Puzzle, label: "Skills", color: "#4ade80" },
-            ].map(({ href, icon: Icon, label, color }) => (
-              <Link
-                key={href}
-                href={href}
-                className="p-3 rounded-lg transition-all hover:scale-[1.02]"
-                style={{ backgroundColor: 'var(--card-elevated)', border: '1px solid var(--border)' }}
-              >
-                <div className="flex items-center gap-2">
-                  <Icon className="w-4 h-4" style={{ color }} />
-                  <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{label}</span>
+                  <span className="text-3xl font-bold text-white">{card.value}</span>
                 </div>
-              </Link>
-            ))}
+                <h3 className="text-gray-400 font-medium">{card.title}</h3>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Additional Info */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Cron Jobs */}
+          <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
+            <div className="flex items-center gap-3 mb-4">
+              <Calendar className="w-6 h-6 text-blue-400" />
+              <h2 className="text-xl font-bold text-white">定时任务</h2>
+            </div>
+            <div className="space-y-3">
+              {cronJobs.length > 0 ? (
+                cronJobs.slice(0, 5).map((job) => (
+                  <div key={job.id} className="bg-white/5 rounded-lg p-3">
+                    <p className="text-white text-sm">{job.description}</p>
+                    <p className="text-gray-500 text-xs mt-1">{job.schedule}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500">无定时任务</p>
+              )}
+            </div>
           </div>
 
-          {/* Notepad */}
-          <div style={{ margin: "1rem", marginTop: "0.5rem" }}>
-            <Notepad />
+          {/* Skills */}
+          <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
+            <div className="flex items-center gap-3 mb-4">
+              <FileText className="w-6 h-6 text-green-400" />
+              <h2 className="text-xl font-bold text-white">技能列表</h2>
+            </div>
+            <div className="text-center py-8">
+              <p className="text-4xl font-bold text-white mb-2">{skills.length}</p>
+              <p className="text-gray-400">已安装技能</p>
+            </div>
           </div>
         </div>
       </div>

@@ -19,10 +19,9 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mission Control - OpenClaw",
-  description: "Your OpenClaw agent dashboard",
+  title: "竞技鹅智能 OS",
+  description: "竞技鹅任务控制中心 - 多 Agent 协作系统",
   manifest: "/manifest.json",
-  themeColor: "#1a1a2e",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -30,6 +29,10 @@ export const metadata: Metadata = {
   icons: {
     apple: "/apple-touch-icon.png",
   },
+};
+
+export const viewport = {
+  themeColor: "#1a1a2e",
 };
 
 export default function RootLayout({

@@ -1,7 +1,8 @@
 'use client';
 
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Sky, Environment } from '@react-three/drei';
+import { OrbitControls, Sky } from '@react-three/drei';
+// Environment removed to avoid HDRI loading issues
 import { Suspense, useState } from 'react';
 import { Vector3 } from 'three';
 import { AGENTS } from './agentsConfig';
@@ -22,21 +23,58 @@ import MovingAvatar from './MovingAvatar';
 export default function Office3D() {
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
   const [interactionModal, setInteractionModal] = useState<string | null>(null);
-  const [controlMode, setControlMode] = useState<'orbit' | 'fps'>('orbit');
+  const [controlMode, setControlMode] = useState<'orbit' | 'fps'>('orbit'); // orbit=轨道模式，fps=第一人称模式
   const [avatarPositions, setAvatarPositions] = useState<Map<string, any>>(new Map());
+  const [conversationLog, setConversationLog] = useState<Array<{agentId: string, agentName: string, text: string, time: string}>>([]);
   
-  // Mock data - TODO: Replace with real API data
-  const [agentStates] = useState<Record<string, AgentState>>({
-    main: { id: 'main', status: 'working', currentTask: 'Procesando emails', model: 'opus', tokensPerHour: 15000, tasksInQueue: 3, uptime: 12 },
-    academic: { id: 'academic', status: 'idle', model: 'sonnet', tokensPerHour: 0, tasksInQueue: 0, uptime: 8 },
-    studio: { id: 'studio', status: 'thinking', currentTask: 'Generando guión YouTube', model: 'opus', tokensPerHour: 8000, tasksInQueue: 1, uptime: 5 },
-    linkedin: { id: 'linkedin', status: 'working', currentTask: 'Redactando post', model: 'sonnet', tokensPerHour: 5000, tasksInQueue: 2, uptime: 10 },
-    social: { id: 'social', status: 'idle', model: 'sonnet', tokensPerHour: 0, tasksInQueue: 0, uptime: 7 },
-    infra: { id: 'infra', status: 'error', currentTask: 'Failed deployment', model: 'haiku', tokensPerHour: 1000, tasksInQueue: 0, uptime: 15 },
+  // Initialize agent states from AGENTS config - ensure no undefined
+  const [agentStates] = useState<Record<string, AgentState>>(() => {
+    const states: Record<string, AgentState> = {};
+    // Initialize ALL agents with default idle state
+    AGENTS.forEach(agent => {
+      states[agent.id] = {
+        id: agent.id,
+        status: 'idle' as const,
+        model: agent.model || 'unknown',
+        tokensPerHour: 0,
+        tasksInQueue: 0,
+        uptime: 0,
+      };
+    });
+    // Set some mock activity for demo
+    if (states['main']) {
+      states['main'].status = 'working' as const;
+      states['main'].currentTask = '处理任务';
+      states['main'].tokensPerHour = 15000;
+      states['main'].tasksInQueue = 3;
+      states['main'].uptime = 12;
+    }
+    if (states['code-helper']) {
+      states['code-helper'].status = 'thinking' as const;
+      states['code-helper'].currentTask = '生成代码';
+      states['code-helper'].tokensPerHour = 8000;
+      states['code-helper'].tasksInQueue = 1;
+      states['code-helper'].uptime = 5;
+    }
+    if (states['tech-writer']) {
+      states['tech-writer'].status = 'working' as const;
+      states['tech-writer'].currentTask = '编写文档';
+      states['tech-writer'].tokensPerHour = 5000;
+      states['tech-writer'].tasksInQueue = 2;
+      states['tech-writer'].uptime = 10;
+    }
+    return states;
   });
 
   const handleDeskClick = (agentId: string) => {
-    setSelectedAgent(agentId);
+    // Validate agent exists and has valid status
+    const agent = AGENTS.find(a => a.id === agentId);
+    const state = agentStates[agentId];
+    if (agent && state && state.status) {
+      setSelectedAgent(agentId);
+    } else {
+      console.warn('Agent not found or invalid:', agentId, agent, state);
+    }
   };
 
   const handleClosePanel = () => {
@@ -57,6 +95,16 @@ export default function Office3D() {
 
   const handleCloseModal = () => {
     setInteractionModal(null);
+  };
+
+  // Handle conversation updates from agents
+  const handleConversationUpdate = (agentId: string, agentName: string, text: string) => {
+    const time = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    setConversationLog(prev => {
+      const newLog = [...prev, { agentId, agentName, text, time }];
+      // Keep only last 10 messages
+      return newLog.slice(-10);
+    });
   };
 
   const handleAvatarPositionUpdate = (id: string, position: any) => {
@@ -84,25 +132,40 @@ export default function Office3D() {
   ];
 
   return (
-    <div className="fixed inset-0 bg-gray-900" style={{ height: '100vh', width: '100vw' }}>
+    <div className="fixed inset-0 bg-gray-900" style={{ height: '100vh', width: '100vw', overflow: 'hidden' }}>
       <Canvas
-        camera={{ position: [0, 8, 12], fov: 60 }}
+        camera={{ position: [0, 8, 12], fov: 60, near: 0.1, far: 1000 }}
         shadows
-        gl={{ antialias: true, alpha: false }}
+        gl={{ antialias: true, alpha: false, preserveDrawingBuffer: true }}
         style={{ width: '100%', height: '100%' }}
+        onCreated={({ gl }) => {
+          gl.domElement.addEventListener('webglcontextlost', (event) => {
+            event.preventDefault();
+            console.warn('WebGL context lost, attempting to restore...');
+          });
+          gl.domElement.addEventListener('webglcontextrestored', () => {
+            console.log('WebGL context restored');
+          });
+        }}
       >
         <Suspense fallback={
-          <mesh>
-            <boxGeometry args={[2, 2, 2]} />
-            <meshStandardMaterial color="orange" />
-          </mesh>
+          <group>
+            <mesh>
+              <boxGeometry args={[2, 2, 2]} />
+              <meshStandardMaterial color="orange" />
+            </mesh>
+            <mesh position={[0, 3, 0]}>
+              <boxGeometry args={[0.5, 2, 0.5]} />
+              <meshStandardMaterial color="gray" />
+            </mesh>
+          </group>
         }>
           {/* Iluminación */}
           <Lights />
 
           {/* Cielo y ambiente */}
           <Sky sunPosition={[100, 20, 100]} />
-          <Environment preset="sunset" />
+          {/* Environment removed to avoid HDRI loading from external CDN */}
 
           {/* Suelo */}
           <Floor />
@@ -111,28 +174,37 @@ export default function Office3D() {
           <Walls />
 
           {/* Escritorios de agentes (sin avatares) */}
-          {AGENTS.map((agent) => (
-            <AgentDesk
-              key={agent.id}
-              agent={agent}
-              state={agentStates[agent.id]}
-              onClick={() => handleDeskClick(agent.id)}
-              isSelected={selectedAgent === agent.id}
-            />
-          ))}
+          {AGENTS.map((agent) => {
+            const state = agentStates[agent.id];
+            if (!state) return null; // Safety check
+            return (
+              <AgentDesk
+                key={agent.id}
+                agent={agent}
+                state={state}
+                onClick={() => handleDeskClick(agent.id)}
+                isSelected={selectedAgent === agent.id}
+              />
+            );
+          })}
 
           {/* Avatares móviles */}
-          {AGENTS.map((agent) => (
-            <MovingAvatar
-              key={`avatar-${agent.id}`}
-              agent={agent}
-              state={agentStates[agent.id]}
-              officeBounds={{ minX: -8, maxX: 8, minZ: -7, maxZ: 7 }}
-              obstacles={obstacles}
-              otherAvatarPositions={avatarPositions}
-              onPositionUpdate={handleAvatarPositionUpdate}
-            />
-          ))}
+          {AGENTS.map((agent) => {
+            const state = agentStates[agent.id];
+            if (!state) return null; // Safety check
+            return (
+              <MovingAvatar
+                key={`avatar-${agent.id}`}
+                agent={agent}
+                state={state}
+                officeBounds={{ minX: -8, maxX: 8, minZ: -7, maxZ: 7 }}
+                obstacles={obstacles}
+                otherAvatarPositions={avatarPositions}
+                otherAgentStates={agentStates}
+                onPositionUpdate={handleAvatarPositionUpdate}
+              />
+            );
+          })}
 
           {/* Mobiliario interactivo */}
           <FileCabinet
@@ -143,6 +215,7 @@ export default function Office3D() {
             position={[0, 0, -8]}
             rotation={[0, 0, 0]}
             onClick={handleWhiteboardClick}
+            agentStates={agentStates}
           />
           <CoffeeMachine
             position={[8, 0.8, -5]}
@@ -175,7 +248,7 @@ export default function Office3D() {
       </Canvas>
 
       {/* Panel lateral cuando se selecciona un agente */}
-      {selectedAgent && (
+      {selectedAgent && agentStates[selectedAgent] && (
         <AgentPanel
           agent={AGENTS.find(a => a.id === selectedAgent)!}
           state={agentStates[selectedAgent]}
@@ -189,9 +262,9 @@ export default function Office3D() {
           <div className="bg-gray-900 border border-yellow-500 rounded-lg p-8 max-w-2xl w-full mx-4 shadow-2xl">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-yellow-400">
-                {interactionModal === 'memory' && '📁 Memory Browser'}
-                {interactionModal === 'roadmap' && '📋 Roadmap & Planning'}
-                {interactionModal === 'energy' && '☕ Agent Energy Dashboard'}
+                {interactionModal === 'memory' && '📁 记忆浏览器'}
+                {interactionModal === 'roadmap' && '📋 路线图与规划'}
+                {interactionModal === 'energy' && '☕ Agent 能量看板'}
               </h2>
               <button
                 onClick={handleCloseModal}
@@ -204,65 +277,65 @@ export default function Office3D() {
             <div className="text-gray-300 space-y-4">
               {interactionModal === 'memory' && (
                 <>
-                  <p className="text-lg">🧠 Access to workspace memories and files</p>
+                  <p className="text-lg">🧠 访问工作区记忆和文件</p>
                   <div className="bg-gray-800 p-4 rounded border border-gray-700">
-                    <p className="text-sm text-gray-400 mb-2">Quick links:</p>
+                    <p className="text-sm text-gray-400 mb-2">快速链接：</p>
                     <ul className="space-y-2">
-                      <li><a href="/memory" className="text-yellow-400 hover:underline">→ Full Memory Browser</a></li>
-                      <li><a href="/files" className="text-yellow-400 hover:underline">→ File Explorer</a></li>
+                      <li><a href="/memory" className="text-yellow-400 hover:underline">→ 完整记忆浏览器</a></li>
+                      <li><a href="/files" className="text-yellow-400 hover:underline">→ 文件管理器</a></li>
                     </ul>
                   </div>
                   <p className="text-sm text-gray-500 italic">
-                    This would show a file tree of memory/*.md and workspace files
+                    这里将显示 memory/*.md 和工作区文件树
                   </p>
                 </>
               )}
 
               {interactionModal === 'roadmap' && (
                 <>
-                  <p className="text-lg">🗺️ Project roadmap and planning board</p>
+                  <p className="text-lg">🗺️ 项目路线图和规划板</p>
                   <div className="bg-gray-800 p-4 rounded border border-gray-700">
-                    <p className="text-sm text-gray-400 mb-2">Active phases:</p>
+                    <p className="text-sm text-gray-400 mb-2">活跃阶段：</p>
                     <ul className="space-y-2">
                       <li className="flex items-center gap-2">
                         <span className="text-green-400">✓</span>
-                        <span>Phase 0: TenacitOS Shell</span>
+                        <span>阶段 0: 竞技鹅 OS Shell</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="text-yellow-400">●</span>
-                        <span>Phase 8: The Office 3D (MVP)</span>
+                        <span>阶段 8: 3D 办公室 (MVP)</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="text-gray-500">○</span>
-                        <span>Phase 2: File Browser Pro</span>
+                        <span>阶段 2: 文件浏览器专业版</span>
                       </li>
                     </ul>
                   </div>
                   <p className="text-sm text-gray-500 italic">
-                    Full roadmap available at workspace/mission-control/ROADMAP.md
+                    完整路线图见 workspace/mission-control/ROADMAP.md
                   </p>
                 </>
               )}
 
               {interactionModal === 'energy' && (
                 <>
-                  <p className="text-lg">⚡ Agent activity and energy levels</p>
+                  <p className="text-lg">⚡ Agent 活动和能量水平</p>
                   <div className="bg-gray-800 p-4 rounded border border-gray-700 space-y-3">
                     <div>
-                      <p className="text-sm text-gray-400">Tokens consumed today:</p>
+                      <p className="text-sm text-gray-400">今日消耗 Token：</p>
                       <p className="text-2xl font-bold text-yellow-400">47,000</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-400">Active agents:</p>
+                      <p className="text-sm text-gray-400">活跃 Agent：</p>
                       <p className="text-2xl font-bold text-green-400">3 / 6</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-400">System uptime:</p>
-                      <p className="text-2xl font-bold text-blue-400">12h 34m</p>
+                      <p className="text-sm text-gray-400">系统运行时间：</p>
+                      <p className="text-2xl font-bold text-blue-400">12 小时 34 分</p>
                     </div>
                   </div>
                   <p className="text-sm text-gray-500 italic">
-                    This would show real-time agent mood/productivity metrics
+                    这里将显示实时 Agent 心情/生产力指标
                   </p>
                 </>
               )}
@@ -272,29 +345,29 @@ export default function Office3D() {
               onClick={handleCloseModal}
               className="mt-6 w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 rounded transition-colors"
             >
-              Close
+              关闭
             </button>
           </div>
         </div>
       )}
 
-      {/* Controles UI overlay */}
+      {/* 控制面板 */}
       <div className="absolute top-4 left-4 bg-black/70 text-white p-4 rounded-lg backdrop-blur-sm">
-        <h2 className="text-lg font-bold mb-2">🏢 The Office</h2>
+        <h2 className="text-lg font-bold mb-2">🏢 3D 办公室</h2>
         <div className="text-sm space-y-1 mb-3">
-          <p><strong>Mode: {controlMode === 'orbit' ? '🖱️ Orbit' : '🎮 FPS'}</strong></p>
+          <p><strong>模式：{controlMode === 'orbit' ? '🖱️ 轨道模式' : '🎮 第一人称'}</strong></p>
           {controlMode === 'orbit' ? (
             <>
-              <p>🖱️ Mouse: Rotar vista</p>
-              <p>🔄 Scroll: Zoom</p>
-              <p>👆 Click: Seleccionar</p>
+              <p>🖱️ 鼠标：旋转视角</p>
+              <p>🔄 滚轮：缩放</p>
+              <p>👆 点击：选择 Agent</p>
             </>
           ) : (
             <>
-              <p>Click to lock cursor</p>
-              <p>WASD/Arrows: Mover</p>
-              <p>Space: Subir | Shift: Bajar</p>
-              <p>Mouse: Mirar | ESC: Unlock</p>
+              <p>点击锁定鼠标</p>
+              <p>WASD/方向键：移动</p>
+              <p>空格：上升 | Shift：下降</p>
+              <p>鼠标：视角 | ESC：解锁</p>
             </>
           )}
         </div>
@@ -302,30 +375,53 @@ export default function Office3D() {
           onClick={() => setControlMode(controlMode === 'orbit' ? 'fps' : 'orbit')}
           className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-3 rounded text-xs transition-colors"
         >
-          Switch to {controlMode === 'orbit' ? 'FPS Mode' : 'Orbit Mode'}
+          切换到 {controlMode === 'orbit' ? '第一人称模式' : '轨道模式'}
         </button>
       </div>
 
-      {/* Legend */}
+      {/* 状态图例 */}
       <div className="absolute bottom-4 right-4 bg-black/70 text-white p-4 rounded-lg backdrop-blur-sm">
-        <h3 className="text-sm font-bold mb-2">Estados</h3>
+        <h3 className="text-sm font-bold mb-2">状态说明</h3>
         <div className="text-xs space-y-1">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span>Working</span>
+            <span>工作中</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
-            <span>Thinking</span>
+            <span>思考中</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
-            <span>Idle</span>
+            <span>空闲</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-            <span>Error</span>
+            <span>错误</span>
           </div>
+        </div>
+      </div>
+
+      {/* 左侧对话面板 - 移到最底部居中展示 */}
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-[600px] max-w-[90%] bg-black/80 text-white p-4 rounded-lg backdrop-blur-sm max-h-48 overflow-y-auto">
+        <h3 className="text-sm font-bold mb-3 flex items-center gap-2 justify-center">
+          <span className="text-lg">💬</span>
+          Agent 实时交互对话
+        </h3>
+        <div className="space-y-2">
+          {conversationLog.length === 0 ? (
+            <p className="text-xs text-gray-500 italic text-center">等待 Agent 对话...</p>
+          ) : (
+            conversationLog.map((conv, index) => (
+              <div key={index} className="bg-white/5 p-2 rounded text-xs border-l-2 border-yellow-500">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-yellow-400">{conv.agentName}</span>
+                  <span className="text-gray-500">{conv.time}</span>
+                </div>
+                <p className="text-gray-300">{conv.text}</p>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

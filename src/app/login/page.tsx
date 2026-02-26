@@ -27,16 +27,21 @@ function LoginForm() {
 
       if (data.success) {
         const from = searchParams.get("from") || "/";
-        router.push(from);
-        router.refresh();
+        // 直接跳转，不等待
+        window.location.href = from;
+        return;
       } else {
-        setError("Contraseña incorrecta");
+        setError(data.error || "密码错误");
       }
-    } catch {
-      setError("Error de conexión");
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError("连接错误：" + (err.message || "未知错误"));
     }
 
     setLoading(false);
+    
+    // 确保无论成功失败都停止 loading
+    setTimeout(() => setLoading(false), 500);
   };
 
   return (
@@ -50,11 +55,7 @@ function LoginForm() {
       {/* Header */}
       <div className="text-center mb-6 flex flex-col items-center gap-2">
         <div className="flex items-center gap-2.5">
-          <Terminal 
-            className="w-7 h-7" 
-            style={{ color: 'var(--accent)' }} 
-          />
-          <span className="text-2xl">🦞</span>
+          <span className="text-2xl">🪿</span>
           <h1 
             className="text-xl font-bold"
             style={{ 
@@ -63,14 +64,14 @@ function LoginForm() {
               letterSpacing: '-0.5px'
             }}
           >
-            Mission Control
+            竞技鹅智能 OS
           </h1>
         </div>
         <p 
           className="text-sm"
           style={{ color: 'var(--text-secondary)' }}
         >
-          Introduce la contraseña para acceder
+          请输入密码以访问系统
         </p>
       </div>
 
@@ -91,7 +92,7 @@ function LoginForm() {
               border: '1px solid var(--border)',
               color: 'var(--text-primary)',
             }}
-            placeholder="Contraseña"
+            placeholder="请输入密码"
             required
           />
         </div>
@@ -118,7 +119,7 @@ function LoginForm() {
             color: 'white',
           }}
         >
-          {loading ? "Verificando..." : "Entrar"}
+          {loading ? "登录中..." : "登录"}
         </button>
       </form>
 
@@ -127,7 +128,7 @@ function LoginForm() {
         className="text-center text-xs mt-6"
         style={{ color: 'var(--text-muted)' }}
       >
-        Tenacitas Agent Dashboard
+        竞技鹅智能管理系统
       </p>
     </div>
   );

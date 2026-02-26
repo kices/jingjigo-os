@@ -1,7 +1,8 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { Box, Text } from '@react-three/drei';
+import { Box } from '@react-three/drei';
+// Text removed to avoid font loading from CDN
 import type { Mesh } from 'three';
 
 interface FileCabinetProps {
@@ -70,18 +71,7 @@ export default function FileCabinet({ position, onClick }: FileCabinetProps) {
         </Box>
       ))}
 
-      {/* Label icon when hovered */}
-      {hovered && (
-        <Text
-          position={[0, 1.4, 0]}
-          fontSize={0.15}
-          color="#fbbf24"
-          anchorX="center"
-          anchorY="middle"
-        >
-          📁 MEMORY
-        </Text>
-      )}
+      {/* Label icon when hovered - Removed to avoid font loading */}
     </group>
   );
 }

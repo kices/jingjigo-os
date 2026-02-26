@@ -22,7 +22,9 @@ interface MovingAvatarProps {
   };
   obstacles: Obstacle[];
   otherAvatarPositions: Map<string, Vector3>;
+  otherAgentStates: Record<string, AgentState>;
   onPositionUpdate: (id: string, pos: Vector3) => void;
+  onConversationUpdate?: (agentId: string, agentName: string, text: string) => void;
 }
 
 export default function MovingAvatar({ 
@@ -31,23 +33,27 @@ export default function MovingAvatar({
   officeBounds, 
   obstacles, 
   otherAvatarPositions,
-  onPositionUpdate 
+  otherAgentStates,
+  onPositionUpdate,
+  onConversationUpdate
 }: MovingAvatarProps) {
   const groupRef = useRef<Group>(null);
+  const [facingAgent, setFacingAgent] = useState<string | null>(null);
+  const [conversationText, setConversationText] = useState<string>('');
   
   // Posición inicial completamente aleatoria SIN colisiones
   const [initialPos] = useState(() => {
     let pos: Vector3;
     let attempts = 0;
-    const minDistanceToObstacle = 1.5;
+    const minDistanceToObstacle = 2.5; // 增加距离避免进入桌子
 
-    // Intentar hasta 50 veces encontrar una posición sin colisión
+    // Intentar hasta 100 veces encontrar una posición sin colisión
     do {
-      const x = Math.random() * (officeBounds.maxX - officeBounds.minX - 2) + officeBounds.minX + 1;
-      const z = Math.random() * (officeBounds.maxZ - officeBounds.minZ - 2) + officeBounds.minZ + 1;
-      pos = new Vector3(x, 0.6, z);
+      const x = Math.random() * (officeBounds.maxX - officeBounds.minX - 4) + officeBounds.minX + 2;
+      const z = Math.random() * (officeBounds.maxZ - officeBounds.minZ - 4) + officeBounds.minZ + 2;
+      pos = new Vector3(x, 0, z); // Y=0 在地面上（group 的 Y 坐标）
 
-      // Verificar colisión con obstáculos
+      // Verificar colisión con obstáculos（包括桌子）
       let isFree = true;
       for (const obstacle of obstacles) {
         const distance = pos.distanceTo(obstacle.position);
@@ -59,9 +65,16 @@ export default function MovingAvatar({
 
       if (isFree) break;
       attempts++;
-    } while (attempts < 50);
+    } while (attempts < 100);
 
     return pos;
+  });
+
+  // 保持 Y 坐标在地面上 (group Y=0, Avatar 内部 Y=0.6)
+  useFrame(() => {
+    if (groupRef.current) {
+      groupRef.current.position.y = 0;
+    }
   });
 
   const [targetPos, setTargetPos] = useState(initialPos);
@@ -71,6 +84,57 @@ export default function MovingAvatar({
   useEffect(() => {
     onPositionUpdate(agent.id, initialPos.clone());
   }, []);
+
+  // 检测最近的活跃 Agent 进行面对面交流
+  useEffect(() => {
+    if (!groupRef.current) return;
+
+    let nearestAgent: string | null = null;
+    let nearestDistance = 5.0; // 5 米内才交流
+    const currentPos = groupRef.current.position;
+
+    // 遍历其他 Agent 状态
+    Object.entries(otherAgentStates).forEach(([otherId, otherState]) => {
+      if (otherId === agent.id) return; // 跳过自己
+      if (otherState.status !== 'working' && otherState.status !== 'thinking') return; // 只与工作中/思考中的 Agent 交流
+
+      const otherPos = otherAvatarPositions.get(otherId);
+      if (!otherPos) return;
+
+      const distance = currentPos.distanceTo(otherPos);
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestAgent = otherId;
+      }
+    });
+
+    // 找到可交流的 Agent，面向它
+    if (nearestAgent) {
+      setFacingAgent(nearestAgent);
+      const targetPos = otherAvatarPositions.get(nearestAgent);
+      if (targetPos) {
+        // 计算朝向目标的角度
+        const angle = Math.atan2(targetPos.x - currentPos.x, targetPos.z - currentPos.z);
+        groupRef.current.rotation.y = angle;
+      }
+      // 生成对话文字 - 发送到全局对话面板
+      const phrases = {
+        working: ['正在处理任务...', '工作中...', '执行操作...', '分析数据...'],
+        thinking: ['思考中...', '考虑方案...', '计算中...', '规划中...'],
+      };
+      const statusPhrases = phrases[state.status as keyof typeof phrases] || phrases.working;
+      const newPhrase = statusPhrases[Math.floor(Math.random() * statusPhrases.length)];
+      setConversationText(newPhrase);
+      
+      // 触发全局对话事件
+      if (onConversationUpdate) {
+        onConversationUpdate(agent.id, agent.name, newPhrase);
+      }
+    } else {
+      setFacingAgent(null);
+      setConversationText('');
+    }
+  }, [state.status, otherAvatarPositions, otherAgentStates]);
 
   // Verificar si una posición está libre (sin colisiones)
   const isPositionFree = (pos: Vector3): boolean => {
@@ -158,6 +222,8 @@ export default function MovingAvatar({
     // Verificar si la nueva posición es válida
     if (isPositionFree(newPos)) {
       currentPos.current.copy(newPos);
+      // 保持 Y=0 在地面上
+      currentPos.current.y = 0;
       groupRef.current.position.copy(currentPos.current);
 
       // Notificar la nueva posición
@@ -173,7 +239,7 @@ export default function MovingAvatar({
       // Si hay colisión, buscar nuevo objetivo
       const x = Math.random() * (officeBounds.maxX - officeBounds.minX) + officeBounds.minX;
       const z = Math.random() * (officeBounds.maxZ - officeBounds.minZ) + officeBounds.minZ;
-      const newTarget = new Vector3(x, 0.6, z);
+      const newTarget = new Vector3(x, 0, z); // Y=0 在地面上
       if (isPositionFree(newTarget)) {
         setTargetPos(newTarget);
       }
@@ -181,14 +247,16 @@ export default function MovingAvatar({
   });
 
   return (
-    <group ref={groupRef} scale={3}>
+    <group ref={groupRef} position={initialPos} scale={3}>
       <VoxelAvatar
         agent={agent}
-        position={[0, 0, 0]}
+        position={[0, 0, 0]} // Avatar 在 group 中心，group 已经在正确高度
         isWorking={state.status === 'working'}
         isThinking={state.status === 'thinking'}
         isError={state.status === 'error'}
       />
+
+      {/* 对话文字气泡已移除 - 改用底部对话面板 */}
     </group>
   );
 }
