@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20.0.0-green.svg)](https://nodejs.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org/)
-[![GitHub](https://img.shields.io/github/stars/257394/jingjigo-os?style=social)](https://github.com/257394/jingjigo-os)
+[![GitHub](https://img.shields.io/github/stars/kices/jingjigo-os?style=social)](https://github.com/kices/jingjigo-os)
 
 ## 🚀 快速开始
 
@@ -28,7 +28,7 @@ chmod +x install.sh
 
 ```bash
 # 1. 克隆仓库
-git clone https://github.com/257394/jingjigo-os.git
+git clone https://github.com/kices/jingjigo-os.git
 cd jingjigo-os
 
 # 2. 安装依赖
@@ -161,9 +161,9 @@ MIT License - 查看 [LICENSE](LICENSE) 文件
 
 ## 📞 联系方式
 
-- **项目主页**: https://github.com/257394/jingjigo-os
-- **问题反馈**: https://github.com/257394/jingjigo-os/issues
-- **讨论区**: https://github.com/257394/jingjigo-os/discussions
+- **项目主页**: https://github.com/kices/jingjigo-os
+- **问题反馈**: https://github.com/kices/jingjigo-os/issues
+- **讨论区**: https://github.com/kices/jingjigo-os/discussions
 
 ---
 

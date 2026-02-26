@@ -5,7 +5,7 @@
 # JingjiGo OS Auto Installer
 # 
 # 使用方法:
-#   curl -fsSL https://raw.githubusercontent.com/257394/jingjigo-os/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/kices/jingjigo-os/main/install.sh | bash
 #
 # 或下载后执行:
 #   wget https://raw.githubusercontent.com/YOUR_USERNAME/jingjigo-os/main/install.sh
@@ -23,7 +23,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # 配置
-REPO_URL="https://github.com/257394/jingjigo-os.git"
+REPO_URL="https://github.com/kices/jingjigo-os.git"
 INSTALL_DIR="/root/jingjigo-os"
 PORT="${PORT:-80}"
 NODE_VERSION="20"
